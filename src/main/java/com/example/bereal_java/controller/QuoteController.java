@@ -70,20 +70,24 @@ public class QuoteController {
         int randomMinute = r.nextInt(60);
         int randomSecond = r.nextInt(60);
 
-        Quote quote = quoteRepository.findById(random).get();
-        String randomQuote = quote.getQuote();
-        Message message = Message.creator(
-                        new com.twilio.type.PhoneNumber(PHONE_NUMBER),
-                        TWILIO_MESSAGING_SERVICE_SID,
-                        randomQuote)
-                // The following time will not work for you. Please change accordingly
-                //randomize the hour, minute, second, nanosecond
-                .setSendAt(ZonedDateTime.of(2023, 1, 25, randomHour, randomMinute, randomSecond, 0, ZoneId.of("UTC")))
-                .setScheduleType(Message.ScheduleType.FIXED)
-                .create();
-        LOG.info("Message SID is {}", message.getSid());
-        System.out.println(message.getSid());
-        return message.getSid() + " sent successfully";
+        Optional<Quote> randomQuoteFromRepo = quoteRepository.findById(random);
+        if (randomQuoteFromRepo.isPresent()) {
+            Quote quote = randomQuoteFromRepo.get();
+            String randomQuote = quote.getQuote();
+            Message message = Message.creator(
+                            new com.twilio.type.PhoneNumber(PHONE_NUMBER),
+                            TWILIO_MESSAGING_SERVICE_SID,
+                            randomQuote)
+                    // The following time will not work for you. Please change accordingly
+                    //randomize the hour, minute, second, nanosecond
+                    .setSendAt(ZonedDateTime.now().plusHours(randomHour).plusMinutes(randomMinute).plusSeconds(randomSecond))
+                    .setScheduleType(Message.ScheduleType.FIXED)
+                    .create();
+            LOG.info("Message SID is {}", message.getSid());
+            System.out.println(message.getSid());
+            return message.getSid() + " sent successfully";
+        }
+        return "Fail";
     }
 
 }
